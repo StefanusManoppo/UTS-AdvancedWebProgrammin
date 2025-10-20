@@ -1,11 +1,13 @@
+require('dotenv').config();
 const mysql = require('mysql2');
 const bcrypt = require('bcryptjs');
 
-const connection = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: '',
-    database: 'bengkel_db'
+const db = mysql.createConnection({
+  host: process.env.MYSQL_ADDON_HOST,
+  user: process.env.MYSQL_ADDON_USER,
+  password: process.env.MYSQL_ADDON_PASSWORD,
+  database: process.env.MYSQL_ADDON_DB,
+  port: process.env.MYSQL_ADDON_PORT
 });
 
 connection.connect((err) => {
