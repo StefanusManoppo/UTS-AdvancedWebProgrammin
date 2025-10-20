@@ -2,26 +2,29 @@ require('dotenv').config();
 const mysql = require('mysql2');
 const bcrypt = require('bcryptjs');
 
-// Membuat koneksi ke database
-const db = mysql.createConnection({
+// Gunakan connection pool
+const db = mysql.createPool({
   host: process.env.MYSQL_ADDON_HOST,
   user: process.env.MYSQL_ADDON_USER,
   password: process.env.MYSQL_ADDON_PASSWORD,
   database: process.env.MYSQL_ADDON_DB,
-  port: process.env.MYSQL_ADDON_PORT
+  port: process.env.MYSQL_ADDON_PORT,
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0
 });
 
-// Cek koneksi
-db.connect((err) => {
+// Tes koneksi
+db.getConnection((err, connection) => {
   if (err) {
-    console.error('Error connecting to MySQL:', err);
+    console.error('Database connection failed:', err);
     return;
   }
   console.log('Connected to MySQL database');
-  createTables();
+  connection.release(); // kembalikan ke pool
+  createTables();       // panggil fungsi buat tabel
 });
 
-// Fungsi membuat tabel
 function createTables() {
   const createUsersTable = `
     CREATE TABLE IF NOT EXISTS users (
@@ -66,7 +69,6 @@ function createTables() {
     )
   `;
 
-  // Jalankan semua query
   db.query(createUsersTable, (err) => {
     if (err) console.error('Error creating users table:', err);
   });
@@ -80,7 +82,7 @@ function createTables() {
     if (err) console.error('Error creating pengeluaran table:', err);
   });
 
-  // Tambahkan admin default
+  // Insert admin default
   const defaultPassword = bcrypt.hashSync('12345', 10);
   const insertAdmin = `
     INSERT IGNORE INTO users (username, password, role)
