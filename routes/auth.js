@@ -13,7 +13,7 @@ const redirectIfAuth = (req, res, next) => {
 // Login page
 router.get('/login', redirectIfAuth, (req, res) => {
     res.render('login', { 
-        title: 'Login Admin',
+        title: 'Login',
         user: null,
         error: null 
     });
@@ -26,7 +26,7 @@ router.post('/login', redirectIfAuth, (req, res) => {
     // Validation
     if (!username || !password) {
         return res.render('login', {
-            title: 'Login Admin',
+            title: 'Login',
             user: null,
             error: 'Username dan password wajib diisi!'
         });
@@ -36,7 +36,7 @@ router.post('/login', redirectIfAuth, (req, res) => {
         if (err) {
             console.error(err);
             return res.render('login', {
-                title: 'Login Admin',
+                title: 'Login',
                 user: null,
                 error: 'Terjadi kesalahan sistem'
             });
@@ -44,7 +44,7 @@ router.post('/login', redirectIfAuth, (req, res) => {
         
         if (!user || !User.verifyPassword(password, user.password)) {
             return res.render('login', {
-                title: 'Login Admin',
+                title: 'Login',
                 user: null,
                 error: 'Username atau password salah!'
             });

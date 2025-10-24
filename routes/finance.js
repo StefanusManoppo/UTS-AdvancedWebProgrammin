@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Finance = require('../models/financeModel');
+const Approval = require('../models/approvalModel');
 
 // Middleware to check authentication
 const requireAuth = (req, res, next) => {
@@ -11,7 +12,7 @@ const requireAuth = (req, res, next) => {
     }
 };
 
-// Pemasukan Page
+// Pemasukan Page - Semua role bisa akses (READ)
 router.get('/pemasukan', requireAuth, (req, res) => {
     Finance.getAllPemasukan((err, results) => {
         if (err) {
@@ -40,25 +41,50 @@ router.get('/pemasukan', requireAuth, (req, res) => {
     });
 });
 
-// Add Pemasukan
+// Add Pemasukan - Admin langsung, Montir pakai approval, Visitor tidak bisa
 router.post('/pemasukan', requireAuth, (req, res) => {
     const { deskripsi, nominal } = req.body;
-    const tanggal = new Date().toISOString().split('T')[0]; // Current date
+    const tanggal = new Date().toISOString().split('T')[0];
+    const user = req.session.user;
     
     if (!deskripsi || !nominal) {
         return res.redirect('/laporan/pemasukan?error=Deskripsi dan nominal wajib diisi');
     }
     
-    Finance.addPemasukan({ tanggal, deskripsi, nominal }, (err) => {
-        if (err) {
-            console.error(err);
-            return res.redirect('/laporan/pemasukan?error=Gagal menambah data pemasukan');
-        }
-        res.redirect('/laporan/pemasukan?success=Data pemasukan berhasil ditambahkan');
-    });
+    // Admin langsung create
+    if (user.role === 'admin') {
+        Finance.addPemasukan({ tanggal, deskripsi, nominal }, (err) => {
+            if (err) {
+                console.error(err);
+                return res.redirect('/laporan/pemasukan?error=Gagal menambah data pemasukan');
+            }
+            res.redirect('/laporan/pemasukan?success=Data pemasukan berhasil ditambahkan');
+        });
+    }
+    // Montir request approval
+    else if (user.role === 'montir') {
+        const requestData = {
+            montir_id: user.id,
+            action_type: 'create',
+            table_name: 'pemasukan',
+            data: { tanggal, deskripsi, nominal }
+        };
+        
+        Approval.createRequest(requestData, (err) => {
+            if (err) {
+                console.error(err);
+                return res.redirect('/laporan/pemasukan?error=Gagal membuat request approval');
+            }
+            res.redirect('/laporan/pemasukan?success=Request berhasil dikirim, menunggu approval admin');
+        });
+    }
+    // Visitor tidak bisa
+    else {
+        res.redirect('/laporan/pemasukan?error=Anda tidak memiliki akses untuk menambah data');
+    }
 });
 
-// Pengeluaran Page
+// Pengeluaran Page - Semua role bisa akses (READ) dengan filter
 router.get('/pengeluaran', requireAuth, (req, res) => {
     const { kategori, start_date, end_date } = req.query;
     
@@ -98,25 +124,50 @@ router.get('/pengeluaran', requireAuth, (req, res) => {
     }
 });
 
-// Add Pengeluaran
+// Add Pengeluaran - Admin langsung, Montir pakai approval, Visitor tidak bisa
 router.post('/pengeluaran', requireAuth, (req, res) => {
     const { deskripsi, nominal, kategori } = req.body;
-    const tanggal = new Date().toISOString().split('T')[0]; // Current date
+    const tanggal = new Date().toISOString().split('T')[0];
+    const user = req.session.user;
     
     if (!deskripsi || !nominal || !kategori) {
         return res.redirect('/laporan/pengeluaran?error=Semua field wajib diisi');
     }
     
-    Finance.addPengeluaran({ tanggal, deskripsi, nominal, kategori }, (err) => {
-        if (err) {
-            console.error(err);
-            return res.redirect('/laporan/pengeluaran?error=Gagal menambah data pengeluaran');
-        }
-        res.redirect('/laporan/pengeluaran?success=Data pengeluaran berhasil ditambahkan');
-    });
+    // Admin langsung create
+    if (user.role === 'admin') {
+        Finance.addPengeluaran({ tanggal, deskripsi, nominal, kategori }, (err) => {
+            if (err) {
+                console.error(err);
+                return res.redirect('/laporan/pengeluaran?error=Gagal menambah data pengeluaran');
+            }
+            res.redirect('/laporan/pengeluaran?success=Data pengeluaran berhasil ditambahkan');
+        });
+    }
+    // Montir request approval
+    else if (user.role === 'montir') {
+        const requestData = {
+            montir_id: user.id,
+            action_type: 'create',
+            table_name: 'pengeluaran',
+            data: { tanggal, deskripsi, nominal, kategori }
+        };
+        
+        Approval.createRequest(requestData, (err) => {
+            if (err) {
+                console.error(err);
+                return res.redirect('/laporan/pengeluaran?error=Gagal membuat request approval');
+            }
+            res.redirect('/laporan/pengeluaran?success=Request berhasil dikirim, menunggu approval admin');
+        });
+    }
+    // Visitor tidak bisa
+    else {
+        res.redirect('/laporan/pengeluaran?error=Anda tidak memiliki akses untuk menambah data');
+    }
 });
 
-// Riwayat Transaksi Page
+// Riwayat Transaksi Page - Semua role bisa akses (READ) dengan filter
 router.get('/riwayat', requireAuth, (req, res) => {
     const { start_date, end_date } = req.query;
     

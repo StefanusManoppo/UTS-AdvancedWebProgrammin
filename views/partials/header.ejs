@@ -24,13 +24,11 @@
                     </li>
                     
                     <% if (!user) { %>
-                        <!-- Menu untuk publik (belum login) -->
                         <li class="nav-item">
                             <a class="nav-link" href="/about">About Us</a>
                         </li>
                     <% } else { %>
-                        <!-- Menu untuk admin (sudah login) - HANYA HOME DAN LOGOUT -->
-                        <!-- Data Stok Barang dan Laporan dihapus dari navbar -->
+
                     <% } %>
                 </ul>
                 
@@ -44,7 +42,7 @@
                         </li>
                     <% } else { %>
                         <li class="nav-item">
-                            <a class="nav-link" href="/login">Login Admin</a>
+                            <a class="nav-link" href="/login">Login</a>
                         </li>
                     <% } %>
                 </ul>
