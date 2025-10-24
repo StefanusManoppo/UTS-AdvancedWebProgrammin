@@ -5,24 +5,27 @@
         <div class="card">
             <div class="card-header">
                 <h4 class="card-title mb-0">Edit Stok Barang</h4>
+                <% if (user.role === 'montir') { %>
+                    <small class="text-warning">⚠️ Memerlukan approval admin</small>
+                <% } %>
             </div>
             <div class="card-body">
                 <% if (error) { %>
                     <div class="alert alert-danger"><%= error %></div>
                 <% } %>
                 
-                <form method="POST" action="/stok/barang/edit/<%= barang.id %>">
+                <form method="POST" action="/stok/barang/edit/<%= barang.id %>" id="formEditStok">
                     <div class="mb-3">
                         <label for="nama_barang" class="form-label">Nama Barang</label>
                         <input type="text" class="form-control" id="nama_barang" name="nama_barang" value="<%= barang.nama_barang %>" required>
                     </div>
                     <div class="mb-3">
                         <label for="jumlah" class="form-label">Jumlah</label>
-                        <input type="number" class="form-control" id="jumlah" name="jumlah" value="<%= barang.jumlah %>" required>
+                        <input type="number" class="form-control" id="jumlah" name="jumlah" value="<%= barang.jumlah %>" min="0" step="1" required>
                     </div>
                     <div class="mb-3">
                         <label for="harga" class="form-label">Harga</label>
-                        <input type="number" step="0.01" class="form-control" id="harga" name="harga" value="<%= barang.harga %>" required>
+                        <input type="number" step="0.01" class="form-control" id="harga" name="harga" value="<%= barang.harga %>" min="0" required>
                     </div>
                     <div class="mb-3">
                         <label for="kategori" class="form-label">Kategori</label>
@@ -37,7 +40,13 @@
                         </select>
                     </div>
                     <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-primary">Update Stok</button>
+                        <button type="submit" class="btn btn-primary">
+                            <% if (user.role === 'admin') { %>
+                                Update Stok
+                            <% } else { %>
+                                Request Update Stok
+                            <% } %>
+                        </button>
                         <a href="/stok/barang" class="btn btn-secondary">Kembali</a>
                     </div>
                 </form>
@@ -45,5 +54,47 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Prevent negative numbers
+    const numberInputs = document.querySelectorAll('input[type="number"]');
+    numberInputs.forEach(input => {
+        input.addEventListener('input', function(e) {
+            if (this.value < 0) {
+                this.value = 0;
+            }
+        });
+        
+        // Prevent typing minus sign and 'e'
+        input.addEventListener('keydown', function(e) {
+            if (e.key === '-' || e.key === 'e' || e.key === 'E') {
+                e.preventDefault();
+            }
+        });
+    });
+    
+    // Form validation
+    const form = document.getElementById('formEditStok');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const jumlah = parseFloat(document.getElementById('jumlah').value);
+            const harga = parseFloat(document.getElementById('harga').value);
+            
+            if (jumlah < 0 || harga < 0) {
+                e.preventDefault();
+                alert('Jumlah dan Harga tidak boleh bernilai negatif!');
+                return false;
+            }
+            
+            if (isNaN(jumlah) || isNaN(harga)) {
+                e.preventDefault();
+                alert('Jumlah dan Harga harus berisi angka yang valid!');
+                return false;
+            }
+        });
+    }
+});
+</script>
 
 <%- include('partials/footer') %>

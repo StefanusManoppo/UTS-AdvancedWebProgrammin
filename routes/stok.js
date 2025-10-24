@@ -49,6 +49,16 @@ router.post('/barang', requireAuth, (req, res) => {
         return res.redirect('/stok/barang?error=Semua field wajib diisi');
     }
     
+    // Validate negative numbers
+    if (parseFloat(jumlah) < 0 || parseFloat(harga) < 0) {
+        return res.redirect('/stok/barang?error=Jumlah dan Harga tidak boleh negatif');
+    }
+    
+    // Validate numeric values
+    if (isNaN(jumlah) || isNaN(harga)) {
+        return res.redirect('/stok/barang?error=Jumlah dan Harga harus berupa angka');
+    }
+    
     // Jika admin, langsung create
     if (user.role === 'admin') {
         StokBarang.create({ nama_barang, jumlah, harga, kategori }, (err) => {

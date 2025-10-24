@@ -34,18 +34,18 @@
                     <% } %>
                 </div>
                 <div class="card-body">
-                    <form method="POST" action="/stok/barang">
+                    <form method="POST" action="/stok/barang" id="formTambahStok">
                         <div class="mb-3">
                             <label for="nama_barang" class="form-label">Nama Barang</label>
                             <input type="text" class="form-control" id="nama_barang" name="nama_barang" required>
                         </div>
                         <div class="mb-3">
                             <label for="jumlah" class="form-label">Jumlah</label>
-                            <input type="number" class="form-control" id="jumlah" name="jumlah" required>
+                            <input type="number" class="form-control" id="jumlah" name="jumlah" min="0" step="1" required>
                         </div>
                         <div class="mb-3">
                             <label for="harga" class="form-label">Harga</label>
-                            <input type="number" step="0.01" class="form-control" id="harga" name="harga" required>
+                            <input type="number" step="0.01" class="form-control" id="harga" name="harga" min="0" required>
                         </div>
                         <div class="mb-3">
                             <label for="kategori" class="form-label">Kategori</label>
@@ -145,6 +145,7 @@
 <script>
 // Handle delete confirmation
 document.addEventListener('DOMContentLoaded', function() {
+    // Delete confirmation
     document.querySelectorAll('.delete-form').forEach(form => {
         form.addEventListener('submit', function(e) {
             const role = this.querySelector('button').getAttribute('data-role');
@@ -155,6 +156,38 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+    
+    // Prevent negative numbers in form inputs
+    const numberInputs = document.querySelectorAll('input[type="number"]');
+    numberInputs.forEach(input => {
+        input.addEventListener('input', function(e) {
+            if (this.value < 0) {
+                this.value = 0;
+            }
+        });
+        
+        // Prevent typing minus sign
+        input.addEventListener('keydown', function(e) {
+            if (e.key === '-' || e.key === 'e' || e.key === 'E') {
+                e.preventDefault();
+            }
+        });
+    });
+    
+    // Additional validation on form submit
+    const form = document.getElementById('formTambahStok');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const jumlah = parseFloat(document.getElementById('jumlah').value);
+            const harga = parseFloat(document.getElementById('harga').value);
+            
+            if (jumlah < 0 || harga < 0) {
+                e.preventDefault();
+                alert('Jumlah dan Harga tidak boleh bernilai negatif!');
+                return false;
+            }
+        });
+    }
 });
 </script>
 
